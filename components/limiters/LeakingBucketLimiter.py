@@ -1,5 +1,3 @@
-from datetime import datetime
-
 class LeakngBucketLimiter:
     def __init__(self, queue):
         self.queue = queue

@@ -10,11 +10,11 @@ class TokenBucketLimiter:
         self.buckets = {} # this is via the IP address
         
     
-    """
-    takes in a request
-    
-    """
+
     def process_request(self,request):
+        """
+        takes in a request
+        """
         # check if the IP address is there, if not there, just create a bucket
         current_ip = request.ip_address
         if current_ip not in self.buckets:

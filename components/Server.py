@@ -3,4 +3,4 @@ class FakeServer:
         return
     
     def process_request(self,request):
-        print("Request is processed!")
+        print(f"Request {request.id} from {request.ip_address} is being processed!\n")

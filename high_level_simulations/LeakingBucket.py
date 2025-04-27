@@ -2,7 +2,8 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from components.TokenBucketLimiter import TokenBucketLimiter
+from components.LeakingBucketLimiter import LeakngBucketLimiter
+from components.Queue import FakeQueue
 from components.RequestGenerator import FakeClient
 from components.Server import FakeServer
 from datetime import datetime
@@ -10,11 +11,12 @@ from datetime import datetime
 from random import randint
 from time import sleep
 
-
 if __name__ == "__main__":
     fake_server = FakeServer()
-    token_bucket_limiter = TokenBucketLimiter(10,5000,fake_server)
-    last_refill_time = datetime.now().timestamp()
+    fake_queue = FakeQueue(fake_server)
+    leaking_bucket_limiter = LeakngBucketLimiter(fake_queue)
+    last_process_time = datetime.now().timestamp()
+    
     
     client_count = 3
     clients = []
@@ -23,13 +25,11 @@ if __name__ == "__main__":
         new_client = FakeClient()
         clients.append(new_client)
         
-    for i in range(200):
+    for i in range(1000):
         current_time = datetime.now().timestamp()
-        if current_time > last_refill_time + 5:
-            token_bucket_limiter.refill_buckets()
-            last_refill_time = current_time
+        if current_time > last_process_time + 0.5:
+            fake_queue.process_request()
+            last_process_time = current_time
             
         sleep(randint(0,500)/1000)
-        clients[randint(0, client_count-1)].generate_request(token_bucket_limiter)
-        
-    
+        clients[randint(0, client_count-1)].generate_request(leaking_bucket_limiter)

@@ -2,9 +2,9 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from components.TokenBucketLimiter import TokenBucketLimiter
-from components.RequestGenerator import FakeClient
-from components.Server import FakeServer
+from components.limiters.TokenBucketLimiter import TokenBucketLimiter
+from components.general.RequestGenerator import FakeClient
+from components.general.Server import FakeServer
 from datetime import datetime
 
 from random import randint

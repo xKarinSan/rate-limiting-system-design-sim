@@ -2,6 +2,9 @@ from datetime import datetime
 from random import randint
 from uuid import uuid4
 
+def generate_random_ip():
+    return ".".join(str(randint(0, 255)) for _ in range(4))
+
 class RequestBlock:
     def __init__(self,ip_address):
         self.timestamp = datetime.now().timestamp()
@@ -10,7 +13,7 @@ class RequestBlock:
 
 class FakeClient:
     def __init__(self):
-        self.ip_address = ".".join(str(randint(0, 255)) for _ in range(4))
+        self.ip_address = generate_random_ip()
     
     """
     generates a request block

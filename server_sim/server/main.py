@@ -2,10 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 # from fastapi.middleware import Middleware
 from pydantic import BaseModel
-from datetime import datetime
 from uvicorn import run
 from cache import redis_cache
-import json
 
 app = FastAPI()
 
@@ -16,32 +14,27 @@ async def rate_limiting_middleware(request:Request, call_next):
         response = await call_next(request)
         return response
     else:
-        # rate limiting logic 
         fake_request = await request.json()
-        
-        # get the IP address too
         ip_address = str(fake_request["ip_address"])
-        payload = fake_request["payload"]
-        timestamp = datetime.now().timestamp()
-        current_bucket = redis_cache.get(ip_address)
+        current_count = 0
+        print(f"redis_cache.get(ip_address):{redis_cache.get(ip_address)}")
         
-        if current_bucket:
-            current_bucket = eval(current_bucket.decode('utf-8'))
+        current_count = redis_cache.get(ip_address)
+
+        if current_count is None:
+            current_count = 0
         else:
-            current_bucket = []
+            current_count = int(current_count) 
             
-        earliest_timestamp = timestamp - 1
-        while current_bucket and current_bucket[0][0] < earliest_timestamp:
-            current_bucket.pop(0)
-        if len(current_bucket) >= RATE_LIMIT_PER_SEC:
+        if current_count >= RATE_LIMIT_PER_SEC:
+            print("current_count:",current_count)
             return JSONResponse(
                 status_code=429,
-                content={"message": "Rate limit exceeded"}
+                content={"message": f"Rate limit {ip_address} exceeded"}
             )
         
-        current_bucket.append([timestamp,payload])
-        redis_cache.set(ip_address, json.dumps(current_bucket))
-
+        redis_cache.incr(ip_address) 
+        redis_cache.pexpire(ip_address,1000)
         response = await call_next(request)
         return response
 
